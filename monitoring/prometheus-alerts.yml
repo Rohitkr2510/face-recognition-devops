@@ -1,0 +1,11 @@
+groups:
+  - name: face-recognition-alerts
+    rules:
+      - alert: HighFaceMatchFailureRate
+        expr: rate(face_match_failures_total[5m]) / rate(face_match_requests_total[5m]) > 0.30
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High face match failure rate"
+          description: "Face match failures exceed 30% for 10 minutes"
