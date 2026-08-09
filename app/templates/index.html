@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Private, browser-based face detection with Sightline">
+    <meta name="theme-color" content="#f7f8fc">
+    <title>Sightline · Face detector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Sightline home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span>Sightline</span>
+      </a>
+      <div class="privacy-status"><i></i> Images are never stored</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow"><span>✦</span> PRIVATE FACE DETECTION</div>
+        <h1>Find every face.<br><em>Keep every image private.</em></h1>
+        <p>Upload a photo or open your camera. Sightline detects faces locally on the server and immediately discards the source image.</p>
+      </section>
+
+      <section class="detector-card" aria-labelledby="detector-title">
+        <div class="card-heading">
+          <div>
+            <h2 id="detector-title">Start a detection</h2>
+            <p>Choose how you would like to add an image.</p>
+          </div>
+          <span class="ready-badge"><i></i> Detector ready</span>
+        </div>
+
+        <div class="source-picker" id="source-picker">
+          <button class="source-option" id="upload-button" type="button">
+            <span class="source-icon upload-icon" aria-hidden="true">↑</span>
+            <strong>Upload an image</strong>
+            <small>JPEG, PNG or WebP · max 10 MB</small>
+            <span class="action-label">Choose a file <b>→</b></span>
+          </button>
+          <span class="or-label">OR</span>
+          <button class="source-option" id="camera-button" type="button">
+            <span class="source-icon camera-icon" aria-hidden="true">◉</span>
+            <strong>Open your camera</strong>
+            <small>Take a photo from this device</small>
+            <span class="action-label">Use camera <b>→</b></span>
+          </button>
+          <input id="file-input" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+        </div>
+
+        <div class="working-view" id="working-view" hidden aria-live="polite">
+          <div class="scanner"><span></span><i></i></div>
+          <h3>Looking for faces…</h3>
+          <p>This usually takes less than a second.</p>
+        </div>
+
+        <div class="result-view" id="result-view" hidden aria-live="polite">
+          <div class="image-stage" id="image-stage">
+            <img id="result-image" alt="Uploaded image with detected faces">
+            <canvas id="face-canvas"></canvas>
+            <span class="image-pill" id="image-pill"></span>
+          </div>
+          <div class="result-summary">
+            <span class="result-check" aria-hidden="true">✓</span>
+            <div>
+              <p>DETECTION COMPLETE</p>
+              <h3 id="result-title"></h3>
+              <small id="result-detail"></small>
+            </div>
+            <button class="new-image-button" id="reset-button" type="button">Detect another image</button>
+          </div>
+        </div>
+
+        <p class="error-message" id="error-message" role="alert"></p>
+      </section>
+
+      <section class="trust-row" aria-label="Privacy features">
+        <div><span>◇</span><p><strong>No image storage</strong><small>Your source image is discarded after detection.</small></p></div>
+        <div><span>◎</span><p><strong>Detection, not identity</strong><small>We find faces—we never identify people.</small></p></div>
+        <div><span>ϟ</span><p><strong>Fast local model</strong><small>OpenCV inference without a cloud AI provider.</small></p></div>
+      </section>
+    </main>
+
+    <footer><span>© 2026 Sightline</span><a href="/docs">API documentation ↗</a><a href="/health">System status</a></footer>
+
+    <dialog id="camera-dialog">
+      <div class="dialog-heading"><div><p>LIVE CAMERA</p><h2>Take a photo</h2></div><button id="camera-close" type="button" aria-label="Close camera">×</button></div>
+      <div class="camera-frame"><video id="camera-video" autoplay playsinline></video><span class="corner top-left"></span><span class="corner top-right"></span><span class="corner bottom-left"></span><span class="corner bottom-right"></span></div>
+      <p class="camera-hint">Position faces clearly inside the frame.</p>
+      <button class="capture-button" id="capture-button" type="button"><span></span> Capture photo</button>
+      <canvas id="capture-canvas" hidden></canvas>
+    </dialog>
+
+    <script src="{{ url_for('static', path='/app.js') }}" defer></script>
+  </body>
+</html>
