@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-from collections import deque
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated
-from uuid import uuid4
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse
@@ -26,16 +23,11 @@ app = FastAPI(
 )
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
-activity: deque[dict[str, object]] = deque(maxlen=12)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def dashboard(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={"recent_activity": list(activity)},
-    )
+    return templates.TemplateResponse(request=request, name="index.html")
 
 
 @app.get("/health", tags=["system"])
@@ -46,11 +38,6 @@ async def health() -> dict[str, str]:
     except RuntimeError:
         model = "unavailable"
     return {"status": "healthy" if model == "ready" else "degraded", "model": model}
-
-
-@app.get("/api/activity", tags=["detections"])
-async def get_activity() -> dict[str, object]:
-    return {"items": list(activity), "total": len(activity)}
 
 
 @app.post("/api/detect", tags=["detections"])
@@ -70,12 +57,4 @@ async def detect(
     except InvalidImageError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    event = {
-        "id": str(uuid4()),
-        "filename": file.filename or "camera-capture.jpg",
-        "faces": len(result.faces),
-        "processing_ms": result.processing_ms,
-        "created_at": datetime.now(UTC).isoformat(),
-    }
-    activity.appendleft(event)
-    return {"id": event["id"], **result.as_dict()}
+    return result.as_dict()

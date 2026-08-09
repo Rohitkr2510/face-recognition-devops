@@ -1,95 +1,131 @@
-const $ = (selector) => document.querySelector(selector);
-const dropzone = $("#dropzone");
-const input = $("#file-input");
-const uploadState = $("#upload-state");
-const loadingState = $("#loading-state");
-const previewState = $("#preview-state");
-const errorMessage = $("#error-message");
-let objectUrl;
+const select = (selector) => document.querySelector(selector);
 
-function showState(state) {
-  uploadState.hidden = state !== "upload";
-  loadingState.hidden = state !== "loading";
-  previewState.hidden = state !== "preview";
+const sourcePicker = select("#source-picker");
+const workingView = select("#working-view");
+const resultView = select("#result-view");
+const fileInput = select("#file-input");
+const errorMessage = select("#error-message");
+const resultImage = select("#result-image");
+let previewUrl;
+
+function showView(view) {
+  sourcePicker.hidden = view !== "source";
+  workingView.hidden = view !== "working";
+  resultView.hidden = view !== "result";
 }
 
-async function processFile(file) {
+function showError(message) {
+  errorMessage.textContent = message;
+  showView("source");
+}
+
+async function detectFaces(file) {
   if (!file) return;
   errorMessage.textContent = "";
-  showState("loading");
+  showView("working");
+
   const formData = new FormData();
-  formData.append("file", file, file.name || "camera-capture.jpg");
+  formData.append("file", file, file.name || "camera-photo.jpg");
+
   try {
     const response = await fetch("/api/detect", { method: "POST", body: formData });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || "Detection failed");
-    if (objectUrl) URL.revokeObjectURL(objectUrl);
-    objectUrl = URL.createObjectURL(file);
-    const image = $("#preview-image");
-    image.src = objectUrl;
-    await image.decode();
-    drawFaces(image, data);
-    $("#result-title").textContent = `${data.face_count} face${data.face_count === 1 ? "" : "s"} detected`;
-    $("#result-detail").textContent = `Processed securely in ${data.processing_ms} ms`;
-    showState("preview");
-    await refreshActivity();
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.detail || "The image could not be processed.");
+
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = URL.createObjectURL(file);
+    resultImage.src = previewUrl;
+    await resultImage.decode();
+
+    showView("result");
+    drawFaceBoxes(result);
+    const noun = result.face_count === 1 ? "face" : "faces";
+    select("#result-title").textContent = `${result.face_count} ${noun} found`;
+    select("#result-detail").textContent = `Processed in ${result.processing_ms} ms · ${result.image.width} × ${result.image.height} px`;
+    select("#image-pill").textContent = `${result.face_count} ${noun} detected`;
   } catch (error) {
-    showState("upload");
-    errorMessage.textContent = error.message;
+    showError(error instanceof Error ? error.message : "Something went wrong. Please try again.");
   }
 }
 
-function drawFaces(image, data) {
-  const canvas = $("#face-canvas");
-  canvas.width = image.clientWidth;
-  canvas.height = image.clientHeight;
-  canvas.style.left = `${image.offsetLeft}px`;
-  canvas.style.width = `${image.clientWidth}px`;
+function drawFaceBoxes(result) {
+  const canvas = select("#face-canvas");
+  const displayedWidth = resultImage.clientWidth;
+  const displayedHeight = resultImage.clientHeight;
+  canvas.width = displayedWidth;
+  canvas.height = displayedHeight;
+  canvas.style.left = `${resultImage.offsetLeft}px`;
+  canvas.style.top = `${resultImage.offsetTop}px`;
+
   const context = canvas.getContext("2d");
-  const scaleX = canvas.width / data.image.width;
-  const scaleY = canvas.height / data.image.height;
-  context.strokeStyle = "#35e0a1";
-  context.lineWidth = 3;
-  data.faces.forEach((face) => context.strokeRect(face.x * scaleX, face.y * scaleY, face.width * scaleX, face.height * scaleY));
+  context.strokeStyle = "#55efb2";
+  context.fillStyle = "#55efb2";
+  context.lineWidth = Math.max(2, displayedWidth / 300);
+  context.font = "600 11px DM Sans";
+
+  const scaleX = displayedWidth / result.image.width;
+  const scaleY = displayedHeight / result.image.height;
+  result.faces.forEach((face, index) => {
+    const x = face.x * scaleX;
+    const y = face.y * scaleY;
+    const width = face.width * scaleX;
+    const height = face.height * scaleY;
+    context.strokeRect(x, y, width, height);
+    context.fillRect(x, Math.max(0, y - 20), 48, 20);
+    context.fillStyle = "#10261e";
+    context.fillText(`Face ${index + 1}`, x + 5, Math.max(14, y - 6));
+    context.fillStyle = "#55efb2";
+  });
 }
 
-async function refreshActivity() {
-  const response = await fetch("/api/activity");
-  const data = await response.json();
-  $("#detection-total").textContent = data.total;
-  $("#faces-total").textContent = data.items.reduce((sum, item) => sum + item.faces, 0);
-  const average = data.items.length ? data.items.reduce((sum, item) => sum + item.processing_ms, 0) / data.items.length : 0;
-  $("#latency-average").textContent = average ? `${average.toFixed(0)} ms` : "—";
-  $("#activity-list").innerHTML = data.items.length ? data.items.map((item) => `
-    <div class="activity-item"><span class="file-icon">▧</span><div><strong>${escapeHtml(item.filename)}</strong><small>${item.faces} face${item.faces === 1 ? "" : "s"} found</small></div><time>${item.processing_ms} ms</time></div>`).join("") :
-    '<div class="empty-state"><span>⌁</span><h3>No detections yet</h3><p>Your processed images will appear here.</p></div>';
+select("#upload-button").addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", () => detectFaces(fileInput.files[0]));
+select("#reset-button").addEventListener("click", () => {
+  fileInput.value = "";
+  errorMessage.textContent = "";
+  showView("source");
+});
+
+const cameraDialog = select("#camera-dialog");
+const cameraVideo = select("#camera-video");
+let cameraStream;
+
+function closeCamera() {
+  cameraStream?.getTracks().forEach((track) => track.stop());
+  cameraStream = undefined;
+  cameraDialog.close();
 }
 
-function escapeHtml(value) { const node = document.createElement("div"); node.textContent = value; return node.innerHTML; }
-
-$("#browse-button").addEventListener("click", (event) => { event.stopPropagation(); input.click(); });
-dropzone.addEventListener("click", () => { if (!previewState.hidden) return; input.click(); });
-dropzone.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) input.click(); });
-input.addEventListener("change", () => processFile(input.files[0]));
-["dragenter", "dragover"].forEach((name) => dropzone.addEventListener(name, (event) => { event.preventDefault(); dropzone.classList.add("dragging"); }));
-["dragleave", "drop"].forEach((name) => dropzone.addEventListener(name, (event) => { event.preventDefault(); dropzone.classList.remove("dragging"); }));
-dropzone.addEventListener("drop", (event) => processFile(event.dataTransfer.files[0]));
-$("#reset-button").addEventListener("click", (event) => { event.stopPropagation(); input.value = ""; showState("upload"); });
-$("#refresh-button").addEventListener("click", refreshActivity);
-
-const dialog = $("#camera-dialog");
-const video = $("#camera-video");
-let stream;
-$("#camera-button").addEventListener("click", async () => {
-  try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false }); video.srcObject = stream; dialog.showModal(); }
-  catch { errorMessage.textContent = "Camera access is unavailable. Check your browser permissions."; }
-});
-function closeCamera() { if (stream) stream.getTracks().forEach((track) => track.stop()); dialog.close(); }
-$("#camera-close").addEventListener("click", closeCamera);
-$("#capture-button").addEventListener("click", () => {
-  const canvas = $("#capture-canvas"); canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0); closeCamera();
-  canvas.toBlob((blob) => processFile(new File([blob], "camera-capture.jpg", { type: "image/jpeg" })), "image/jpeg", .9);
+select("#camera-button").addEventListener("click", async () => {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    showError("Camera access is not supported by this browser.");
+    return;
+  }
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false,
+    });
+    cameraVideo.srcObject = cameraStream;
+    cameraDialog.showModal();
+  } catch {
+    showError("Camera access was denied. Allow camera access or upload an image instead.");
+  }
 });
 
-refreshActivity();
+select("#camera-close").addEventListener("click", closeCamera);
+cameraDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeCamera();
+});
+
+select("#capture-button").addEventListener("click", () => {
+  const canvas = select("#capture-canvas");
+  canvas.width = cameraVideo.videoWidth;
+  canvas.height = cameraVideo.videoHeight;
+  canvas.getContext("2d").drawImage(cameraVideo, 0, 0);
+  closeCamera();
+  canvas.toBlob((blob) => {
+    if (blob) detectFaces(new File([blob], "camera-photo.jpg", { type: "image/jpeg" }));
+  }, "image/jpeg", 0.92);
+});

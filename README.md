@@ -1,12 +1,12 @@
 # Sightline
 
-Sightline is a clean, privacy-first face **detection** platform. It locates faces in images without identifying people, saving biometric profiles, or retaining uploaded files. The responsive dashboard, camera capture flow, REST API, and OpenCV inference service run together as one Python application.
+Sightline is a simple, privacy-first face **detection** web page. Upload a photo or open your camera, then see every detected face highlighted directly on the image. Sightline does not identify people, save biometric profiles, or retain uploaded files.
 
 ## Features
 
-- Upload, drag and drop, or capture JPEG, PNG, and WebP images.
+- Upload or capture JPEG, PNG, and WebP images.
 - Draw face bounding boxes directly in the browser.
-- Review session-level detection counts, latency, and recent activity.
+- Show a clear result with face count, image dimensions, and processing time.
 - Run local inference with OpenCV's frontal-face Haar cascade.
 - Explore a typed OpenAPI contract at `/docs`.
 - Deploy with Docker Compose and validate changes through GitHub Actions.
@@ -14,7 +14,7 @@ Sightline is a clean, privacy-first face **detection** platform. It locates face
 
 ## Quick start
 
-Requires Python 3.11 or newer.
+Requires Python 3.14, the current feature release targeted by this project.
 
 ```bash
 python -m venv .venv
@@ -44,7 +44,6 @@ The response contains image dimensions, elapsed inference time, and a list of bo
 
 ```json
 {
-  "id": "876d50ea-8ece-4cf5-aed1-68ed5ef5c778",
   "image": {"width": 1200, "height": 800},
   "faces": [{"x": 412, "y": 176, "width": 220, "height": 220, "confidence": 0.9}],
   "face_count": 1,
@@ -57,10 +56,9 @@ Other endpoints:
 | Method | Path | Purpose |
 |---|---|---|
 | `GET` | `/health` | Application and detector health |
-| `GET` | `/api/activity` | Recent in-memory activity for this process |
 | `GET` | `/docs` | Interactive OpenAPI documentation |
 
-Uploads are limited to 10 MB and are discarded after inference. Recent activity contains metadata only and resets when the server restarts.
+Uploads are limited to 10 MB and are discarded after inference. No activity or image history is stored.
 
 ## Development
 
