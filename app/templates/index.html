@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Sightline privacy-first face detection dashboard">
+    <title>Sightline — Face Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="/" aria-label="Sightline home">
+          <span class="brand-mark"><i></i><i></i><i></i><i></i></span>
+          <span>Sightline</span>
+        </a>
+        <nav aria-label="Primary navigation">
+          <p class="nav-label">Workspace</p>
+          <a class="nav-item active" href="#overview"><span>⌂</span>Overview</a>
+          <a class="nav-item" href="#detect"><span>⌗</span>Face detection</a>
+          <a class="nav-item" href="#activity"><span>◷</span>Activity</a>
+          <p class="nav-label">Manage</p>
+          <a class="nav-item" href="/docs"><span>⌘</span>API explorer</a>
+          <a class="nav-item" href="#settings"><span>⚙</span>Settings</a>
+        </nav>
+        <div class="privacy-card">
+          <span class="privacy-icon">◈</span>
+          <strong>Privacy by design</strong>
+          <p>Images are processed in memory and never stored.</p>
+          <a href="#privacy">Learn more →</a>
+        </div>
+        <div class="profile">
+          <div class="avatar">SK</div>
+          <div><strong>Studio workspace</strong><small>Local environment</small></div>
+          <button aria-label="Profile menu">•••</button>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <button class="menu-button" aria-label="Open menu">☰</button>
+          <div class="status"><span></span>All systems operational</div>
+          <div class="top-actions"><a href="/docs">API docs</a><button class="icon-button" aria-label="Notifications">♢</button></div>
+        </header>
+
+        <div class="content" id="overview">
+          <section class="welcome">
+            <div><p class="eyebrow">FACE DETECTION WORKSPACE</p><h1>Good morning, Studio.</h1><p>Detect faces instantly while keeping every image private.</p></div>
+            <a class="secondary-button" href="/docs">View API docs <span>↗</span></a>
+          </section>
+
+          <section class="stats" aria-label="Platform statistics">
+            <article><div class="stat-head"><span class="stat-icon blue">⌗</span><small>Last 24 hours</small></div><p>Detections</p><strong id="detection-total">{{ recent_activity|length }}</strong><em class="positive">Local session</em></article>
+            <article><div class="stat-head"><span class="stat-icon violet">◎</span><small>Across all images</small></div><p>Faces found</p><strong id="faces-total">{{ recent_activity|sum(attribute='faces') }}</strong><em>Detection only</em></article>
+            <article><div class="stat-head"><span class="stat-icon green">ϟ</span><small>Current session</small></div><p>Average latency</p><strong id="latency-average">—</strong><em class="positive">On-device model</em></article>
+          </section>
+
+          <section class="workspace-grid">
+            <article class="panel detector-panel" id="detect">
+              <div class="panel-heading"><div><h2>Detect faces</h2><p>Upload an image or use your camera to begin.</p></div><span class="model-chip"><i></i>Model ready</span></div>
+              <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload an image">
+                <input id="file-input" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                <div class="upload-state" id="upload-state">
+                  <div class="upload-icon">⇧</div>
+                  <h3>Drop an image here</h3>
+                  <p>or choose a file from your device</p>
+                  <button class="primary-button" id="browse-button" type="button">Choose image</button>
+                  <small>JPEG, PNG or WebP · Up to 10 MB</small>
+                </div>
+                <div class="preview-state" id="preview-state" hidden>
+                  <div class="canvas-wrap"><img id="preview-image" alt="Detection preview"><canvas id="face-canvas"></canvas></div>
+                  <div class="result-copy"><span class="success-mark">✓</span><div><h3 id="result-title">Analysis complete</h3><p id="result-detail"></p></div><button class="text-button" id="reset-button" type="button">Try another</button></div>
+                </div>
+                <div class="loading-state" id="loading-state" hidden><span class="spinner"></span><h3>Scanning image…</h3><p>Running local face detection</p></div>
+              </div>
+              <div class="divider"><span>OR</span></div>
+              <button class="camera-button" id="camera-button" type="button"><span>◉</span>Use camera</button>
+              <p class="error-message" id="error-message" role="alert"></p>
+            </article>
+
+            <article class="panel activity-panel" id="activity">
+              <div class="panel-heading"><div><h2>Recent activity</h2><p>Your latest detection events.</p></div><button class="text-button" id="refresh-button">Refresh</button></div>
+              <div class="activity-list" id="activity-list">
+                {% if recent_activity %}{% for item in recent_activity %}
+                <div class="activity-item"><span class="file-icon">▧</span><div><strong>{{ item.filename }}</strong><small>{{ item.faces }} face{{ '' if item.faces == 1 else 's' }} found</small></div><time>{{ item.processing_ms }} ms</time></div>
+                {% endfor %}{% else %}
+                <div class="empty-state"><span>⌁</span><h3>No detections yet</h3><p>Your processed images will appear here.</p></div>
+                {% endif %}
+              </div>
+              <div class="activity-footer"><span><i></i>Session storage only</span><span>Auto-refresh enabled</span></div>
+            </article>
+          </section>
+
+          <section class="assurance" id="privacy"><div class="assurance-icon">◇</div><div><h2>Built for privacy, designed for speed.</h2><p>Sightline detects face locations without identifying anyone. Uploads remain in memory only and are discarded immediately after analysis.</p></div><div class="assurance-points"><span>✓ No image storage</span><span>✓ No identity matching</span><span>✓ Local processing</span></div></section>
+          <footer><span>© 2026 Sightline</span><div><a href="/docs">API</a><a href="#privacy">Privacy</a><a href="/health">System status</a></div></footer>
+        </div>
+      </main>
+    </div>
+    <dialog id="camera-dialog"><button class="dialog-close" id="camera-close" aria-label="Close">×</button><h2>Camera capture</h2><p>Center a face in frame, then capture the image.</p><video id="camera-video" autoplay playsinline></video><button class="primary-button" id="capture-button">Capture image</button><canvas id="capture-canvas" hidden></canvas></dialog>
+    <script src="{{ url_for('static', path='/app.js') }}" defer></script>
+  </body>
+</html>
