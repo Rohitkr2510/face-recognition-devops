@@ -12,6 +12,16 @@ Sightline is a simple, privacy-first face **detection** web page. Upload a photo
 - Deploy with Docker Compose and validate changes through GitHub Actions.
 - Process images in memory only; source images are never persisted.
 
+## Screenshots
+
+### Detection workspace
+
+![Sightline upload and camera interface](docs/images/sightline-home.png)
+
+### Detection result
+
+![Sightline face detection result showing a detected face](docs/images/sightline-detection-result.png)
+
 ## Quick start
 
 Requires Python 3.14, the current feature release targeted by this project.
