@@ -77,19 +77,11 @@ ruff check .
 pytest -q
 ```
 
-## Architecture
+## Documentation
 
-```text
-Browser (Jinja UI + JavaScript canvas)
-                    │ multipart image
-                    ▼
-          FastAPI validation layer
-                    │ in-memory bytes
-                    ▼
-       OpenCV Haar cascade detector
-                    │ bounding boxes only
-                    ▼
-          JSON response + canvas overlay
-```
+- [Project overview](docs/PROJECT_OVERVIEW.md) — goals, capabilities, repository layout, dependencies, and API behavior.
+- [Architecture](docs/ARCHITECTURE.md) — component responsibilities, Mermaid diagrams, request lifecycle, and design decisions.
+- [Development and testing](docs/DEVELOPMENT_AND_TESTING.md) — Windows/Linux setup, test strategy, linting, and debugging.
+- [DevOps and operations](docs/DEVOPS_AND_OPERATIONS.md) — Docker, Compose, CI, observability, security, deployment readiness, and runbooks.
 
 Sightline deliberately performs detection rather than recognition. It does not create embeddings, match identities, or maintain a biometric database.
