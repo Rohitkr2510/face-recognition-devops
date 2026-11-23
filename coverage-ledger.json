@@ -1,0 +1,97 @@
+{
+  "repo_name": "test_target_repo",
+  "commit_sha": "",
+  "total_files": 30,
+  "audited_files": 30,
+  "coverage_percent": 100.0,
+  "units": [
+    {
+      "unit_name": "manifests_dependencies",
+      "file_paths": [
+        "pyproject.toml"
+      ],
+      "scanners_run": [
+        "Semgrep",
+        "Bandit",
+        "Trivy",
+        "Dependency-Check"
+      ],
+      "inspected_at": "2026-11-23 18:10:19.805992+00:00",
+      "findings_count": 0,
+      "status": "audited"
+    },
+    {
+      "unit_name": "source_code",
+      "file_paths": [
+        ".gitignore",
+        ".gitkeep",
+        "FINDINGS-DETAIL.md",
+        "NEEDS-VALIDATION.md",
+        "README.md",
+        "REPORT.md",
+        "app/detector.py",
+        "app/main.py",
+        "app/__init__.py",
+        "docs/ARCHITECTURE.md",
+        "docs/DEVOPS_AND_OPERATIONS.md",
+        "docs/PROJECT_OVERVIEW.md",
+        ".github/workflows/ci.yml",
+        "app/static/app.js",
+        "app/static/styles.css",
+        "app/templates/index.html",
+        "docs/images/sightline-detection-result.png",
+        "docs/images/sightline-home.png"
+      ],
+      "scanners_run": [
+        "Semgrep",
+        "Bandit",
+        "Trivy",
+        "Dependency-Check"
+      ],
+      "inspected_at": "2026-11-23 18:10:19.805992+00:00",
+      "findings_count": 0,
+      "status": "audited"
+    },
+    {
+      "unit_name": "container_iac",
+      "file_paths": [
+        ".dockerignore",
+        "docker-compose.yml",
+        "Dockerfile",
+        "tests/test_vulscan_iac_compose_all_interfaces_1.yml"
+      ],
+      "scanners_run": [
+        "Semgrep",
+        "Bandit",
+        "Trivy",
+        "Dependency-Check"
+      ],
+      "inspected_at": "2026-11-23 18:10:19.805992+00:00",
+      "findings_count": 0,
+      "status": "audited"
+    },
+    {
+      "unit_name": "tests_fixtures",
+      "file_paths": [
+        ".pytest_cache/.gitignore",
+        ".pytest_cache/CACHEDIR.TAG",
+        ".pytest_cache/README.md",
+        "docs/DEVELOPMENT_AND_TESTING.md",
+        "tests/test_app.py",
+        ".pytest_cache/v/cache/lastfailed",
+        ".pytest_cache/v/cache/nodeids"
+      ],
+      "scanners_run": [
+        "Semgrep",
+        "Bandit",
+        "Trivy",
+        "Dependency-Check"
+      ],
+      "inspected_at": "2026-11-23 18:10:19.805992+00:00",
+      "findings_count": 0,
+      "status": "audited"
+    }
+  ],
+  "blind_spots": [],
+  "updated_at": "2026-11-23 18:10:19.805992+00:00"
+}
